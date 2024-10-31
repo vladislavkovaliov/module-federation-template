@@ -1,0 +1,6 @@
+@import "@alfalab/core-components/vars/typography.css";
+
+body {
+  margin: 0;
+  font-family: var(--font-family-system);
+}
