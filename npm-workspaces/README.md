@@ -2,48 +2,87 @@
 
 Используется npm workspaces, чтобы был синк по версиям пакетов.
 
-Шаги запуска и теста (локально):
+Для решение проблемы с работой module federation и nextjs, есть кастыль, который позволяет вызывать код, который отвечает за загрузку remoteEntry.js напрямую из клиентского компонента.
+
+# Сборка widgets
+
+Для сборки widgets в папочку dist нужно запустить:
 
 ```
-# Нужно собрать проект
-
-npm run build -w ./packages/remote
+npm run build -w ./packages/widgets
 ```
 
-После выполнений в терминале будет что-то типо такого:
+Результат: должны получить следующее
 
 ```
-❯ npm run build -w ./packages/remote
-
-> remote@0.0.0 build
-> tsc -b && vite build
-
-vite v5.4.10 building for production...
-✓ 355 modules transformed.
-dist/index.html                                            0.90 kB │ gzip:  0.41 kB
-dist/assets/index-BEX1ocfc.css                             1.77 kB │ gzip:  0.80 kB
-dist/assets/Component-Ch1UGJ2C.css                       219.38 kB │ gzip:  8.70 kB
-dist/assets/__federation_expose_PlainButton-DRPmdRKl.js    0.21 kB │ gzip:  0.17 kB
-dist/assets/__federation_expose_HostButton-CwcJCCkR.js     0.27 kB │ gzip:  0.20 kB
-dist/assets/jsx-runtime-BgsmXpcd.js                        1.21 kB │ gzip:  0.65 kB
-dist/assets/remoteEntry.js                                 2.47 kB │ gzip:  0.94 kB
-dist/assets/__federation_shared_react-DYlhdcjt.js          7.84 kB │ gzip:  2.91 kB
-dist/assets/__federation_fn_import-BNrZmHgS.js            13.85 kB │ gzip:  3.07 kB
-dist/assets/Component.responsive-BxbYIb_Z.js              27.42 kB │ gzip:  8.39 kB
-dist/assets/index-BJehOxLO.js                            139.40 kB │ gzip: 44.83 kB
-✓ built in 607ms
+❯ l packages/widgets/dist
+total 1472
+drwxr-xr-x  23 vladislavkovaliov  staff   736B Nov  1 11:03 .
+drwxr-xr-x  10 vladislavkovaliov  staff   320B Nov  1 11:03 ..
+-rw-r--r--   1 vladislavkovaliov  staff    23K Nov  1 11:03 184.js
+-rw-r--r--   1 vladislavkovaliov  staff    17K Nov  1 11:03 251.js
+-rw-r--r--   1 vladislavkovaliov  staff    63K Nov  1 11:03 370.js
+-rw-r--r--   1 vladislavkovaliov  staff   950B Nov  1 11:03 370.js.LICENSE.txt
+-rw-r--r--   1 vladislavkovaliov  staff    14K Nov  1 11:03 392.css
+-rw-r--r--   1 vladislavkovaliov  staff   945B Nov  1 11:03 392.js
+-rw-r--r--   1 vladislavkovaliov  staff   121B Nov  1 11:03 392.js.LICENSE.txt
+-rw-r--r--   1 vladislavkovaliov  staff   225K Nov  1 11:03 430.css
+-rw-r--r--   1 vladislavkovaliov  staff    14K Nov  1 11:03 430.js
+-rw-r--r--   1 vladislavkovaliov  staff   121B Nov  1 11:03 430.js.LICENSE.txt
+-rw-r--r--   1 vladislavkovaliov  staff   212B Nov  1 11:03 442.js
+-rw-r--r--   1 vladislavkovaliov  staff    14K Nov  1 11:03 509.css
+-rw-r--r--   1 vladislavkovaliov  staff   2.2K Nov  1 11:03 509.js
+-rw-r--r--   1 vladislavkovaliov  staff    14K Nov  1 11:03 911.css
+-rw-r--r--   1 vladislavkovaliov  staff   2.0K Nov  1 11:03 911.js
+-rw-r--r--   1 vladislavkovaliov  staff   492B Nov  1 11:03 951.js
+-rw-r--r--   1 vladislavkovaliov  staff   416B Nov  1 11:03 index.html
+-rw-r--r--   1 vladislavkovaliov  staff   143K Nov  1 11:03 main.js
+-rw-r--r--   1 vladislavkovaliov  staff   721B Nov  1 11:03 main.js.LICENSE.txt
+-rw-r--r--   1 vladislavkovaliov  staff   144K Nov  1 11:03 remoteEntry.js
+-rw-r--r--   1 vladislavkovaliov  staff   721B Nov  1 11:03 remoteEntry.js.LICENSE.txt
 ```
 
-INFO: PlainButton - без каких либо зависимостей;
+# Сборка NextJS
 
-После нужно запустить локальный сервер для раздачи(используется встроенные инструменты vite):
+Тут есть две версии NextJS с app роутом.
+
+Нужно собрать NextJS приложения через команду:
 
 ```
-> vite preview
 
-  ➜  Local:   http://localhost:4173/
-  ➜  Network: use --host to expose
-  ➜  press h + enter to show help
+npm run build -w ./packages/next14-app
 ```
 
-После запускаем хост приложение и проверяем что кнопки работают корректно и в консоле все чисто.
+# Запуск server
+
+Зачем оно? Сейчас оно используется чтобы раздавать статику widgets пакета и запуск NextJS приложения.
+
+```
+npm run start -w ./packages/server
+```
+
+NOTES: запустив exposer можно запустить SPA на vite или webpack и подключить \_\_federation/remoteEntry.js используя ModuleFederation или ViteFederation.
+
+# Запуск react-vite
+
+```
+npm run dev -w ./packeges/react-vite
+```
+
+NOTES: Нужно чтобы был запущен сервер для раздачи widgets.
+
+```
+  # Пример как подвключать remoteEntry.js
+ 
+  remotes: {
+    widgets: {
+      /**
+       * Для локальной разработки нужно раскоментить
+       */
+      external: "http://localhost:3000/__federated/remoteEntry.js",
+      externalType: 'url',
+      format: 'var',
+      from: 'webpack',
+    },
+  },
+```
